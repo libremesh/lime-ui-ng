@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# install the default password (admin/admin)
+# TODO: make this read default passwords from configuration file
+SHADOW_FILE=/etc/orange/shadow
+
+mkdir -p $(dirname $SHADOW_FILE)
+rm -f $SHADOW_FILE
+which sha1sum || { echo "ERROR: you need to have sha1sum installed for JUCI to work!"; return -1; }
+echo "admin `printf admin|sha1sum | awk '{printf $1}'`" > $SHADOW_FILE
+chmod 700 $SHADOW_FILE
+
+ubus call uci delete '{"config":"rpcd","type":"login"}'
+ubus call uci commit '{"config":"rpcd"}'
+
+# create redirect cgi if luci exist
+[ -f /www/cgi-bin/luci ] && {
+  mv /www/cgi-bin/luci /www/cgi-bin/luci-original
+  cat >> /www/cgi-bin/luci << EOF
+#!/usr/sbin/bash
+echo "Content-type: text/html"
+echo
+echo "<html><head></head><body><a href="/">Click here to go to new webgui.</a></body></html>"
+EOF
+}
+
+# move luci index.html and create own index.html
+[ -f /www/index.html ] && {
+  mv /www/index.html /www/luci-index.html
+  # TODO
+}
+
+exit 0
