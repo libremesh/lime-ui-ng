@@ -34,7 +34,7 @@ define Build/Compile
 	echo "Nothing to compile!"
 endef 
 
-define Package/luci-webui-ng/install
+define Package/lime-webui-ng/install
 	$(CP) ./files/* $(1)/
 endef
 
