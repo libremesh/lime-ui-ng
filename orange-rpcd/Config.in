@@ -2,3 +2,12 @@ config ORANGE_PARALLEL
 	depends on PACKAGE_orange-rpcd
 	bool "Enable parallel processing of requests"
 	default y
+	select KERNEL_LXC_MISC
+	select KERNEL_POSIX_MQUEUE
+
+config ORANGE_RPC_OPTIONS
+	bool "Enable SHA1 password encryption"
+	default y
+	select BUSYBOX_DEFAULT_SHA1SUM
+	help
+	  Add SHA1SUM support in BusyBox. Required for storing passwords
