@@ -13,17 +13,6 @@ chmod 700 $SHADOW_FILE
 ubus call uci delete '{"config":"rpcd","type":"login"}'
 ubus call uci commit '{"config":"rpcd"}'
 
-# create redirect cgi if luci exist
-[ -f /www/cgi-bin/luci ] && {
-  mv /www/cgi-bin/luci /www/cgi-bin/luci-original
-  cat >> /www/cgi-bin/luci << EOF
-#!/usr/sbin/bash
-echo "Content-type: text/html"
-echo
-echo "<html><head></head><body><a href="/">Click here to go to new webgui.</a></body></html>"
-EOF
-}
-
 # move luci index.html and create own index.html
 [ -f /www/index.html ] && {
   mv /www/index.html /www/luci-index.html

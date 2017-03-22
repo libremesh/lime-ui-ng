@@ -1,0 +1,8 @@
+#!/bin/sh
+[ -f /www/cgi-bin/luci ] && {
+echo '
+url.rewrite                = ( "^/luci$"             => "/cgi-bin/luci/" )
+url.rewrite                += ( "^/luci/"             => "/cgi-bin/luci/" )' >> /etc/lighttpd/lighttpd.conf
+echo 'include "conf.d/cgi.conf"' >> /etc/lighttpd/modules.conf
+echo 'include "conf.d/rewrite.conf"' >> /etc/lighttpd/modules.conf
+}
