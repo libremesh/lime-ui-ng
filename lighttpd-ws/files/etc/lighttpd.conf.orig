@@ -17,26 +17,7 @@ var.server_root = "/"
 var.log_root    = server_root + "/var/log"
 var.web_root    = server_root + "/www"
 var.state_dir   = server_root + "/var/run"
-var.conf_dir    = server_root + "/etc"
-
-## 
-## run the server chrooted.
-## 
-## This requires root permissions during startup.
-##
-## If you run Chrooted set the the variables to directories relative to
-## the chroot dir.
-##
-## example chroot configuration:
-## 
-#var.log_root    = "/logs"
-#var.server_root = "/"
-#var.state_dir   = "/run"
-#var.home_dir    = "/lib/lighttpd"
-#var.vhosts_dir  = "/vhosts"
-#var.conf_dir    = "/etc"
-#
-#server.chroot   = "/srv/www"
+var.conf_dir    = server_root + "/etc/lighttpd"
 
 ##
 ## Some additional variables to make the configuration easier
@@ -91,7 +72,7 @@ server.port = 80
 ##
 ## Use IPv6?
 ##
-server.use-ipv6 = "disable"
+server.use-ipv6 = "enable"
 
 ##
 ## bind to a specific IP
@@ -319,7 +300,7 @@ url.access-deny             = ( "~", ".inc" )
 ##
 ## url handling modules (rewrite, redirect)
 ##
-#url.rewrite                = ( "^/$"             => "/server-status" )
+#url.rewrite                = ( "^/luci$"             => "/cgi-bin/luci" )
 #url.redirect               = ( "^/wishlist/(.+)" => "http://www.example.com/$1" )
 
 ##
@@ -438,5 +419,3 @@ server.follow-symlink = "enable"
 
 ##
 #######################################################################
-
-include "conf.d/cgi.conf"

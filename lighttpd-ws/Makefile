@@ -82,7 +82,7 @@ endef
 
 CONFIGURE_ARGS+= \
 	--libdir=/usr/lib/lighttpd \
-	--sysconfdir=/etc/lighttpd \
+	--sysconfdir=/etc \
 	--enable-shared \
 	--enable-static \
 	--disable-rpath \
@@ -127,7 +127,7 @@ define Package/lighttpd-ws/conffiles
 endef
 
 define Package/lighttpd-ws/install
-	$(INSTALL_DIR) $(1)/etc/lighttpd
+	$(INSTALL_DIR) $(1)/etc
 	$(CP) ./files/etc/* $(1)/etc/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/lighttpd.init $(1)/etc/init.d/lighttpd
@@ -154,3 +154,6 @@ $(eval $(call BuildPackage,lighttpd-ws))
 $(eval $(call BuildPlugin,lighttpd-ws-mod-cgi,cgi))
 $(eval $(call BuildPlugin,lighttpd-ws-mod-proxy,proxy))
 $(eval $(call BuildPlugin,lighttpd-ws-mod-websocket,websocket))
+$(eval $(call BuildPlugin,lighttpd-ws-mod-rewrite,rewrite))
+$(eval $(call BuildPlugin,lighttpd-ws-mod-redirect,redirect))
+

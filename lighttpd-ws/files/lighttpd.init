@@ -8,7 +8,7 @@ START=50
 start() {
 	[ -d /var/log/lighttpd ] || mkdir -p /var/log/lighttpd
 	chmod 0777 /var/log/lighttpd
-	service_start /usr/sbin/lighttpd -f /etc/lighttpd.conf
+	service_start /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
 }
 
 stop() {
