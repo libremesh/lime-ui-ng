@@ -27,18 +27,18 @@ define Package/$(PKG_NAME)
   $(call Package/$(PKG_NAME)/Default)
   TITLE:= Advanced web user interface for LibreMesh
   DEPENDS:=+orange-rpcd +lighttpd-ws +lighttpd-ws-mod-websocket \
-					+lighttpd-ws-mod-proxy
+	+lighttpd-ws-mod-proxy +lime-api-orange-rpc
 endef
 
 define Package/$(PKG_NAME)-luci
   $(call Package/$(PKG_NAME)/Default)
   TITLE:= Add LuCi in addition to $(PKG_NAME)
   DEPENDS:=+$(PKG_NAME) +luci-mod-admin-full +lime-system \
-					+PACKAGE_lime-proto-bmx6:luci-app-bmx6 \
-					+PACKAGE_lime-proto-batadv:luci-app-batman-adv \
-					+luci-mod-status +libiwinfo-lua \
-					+luci-theme-bootstrap +luci-i18n-base-en \
-					+lighttpd-ws-mod-rewrite +lighttpd-ws-mod-cgi
+	+PACKAGE_lime-proto-bmx6:luci-app-bmx6 \
+	+PACKAGE_lime-proto-batadv:luci-app-batman-adv \
+	+luci-mod-status +libiwinfo-lua \
+	+luci-theme-bootstrap +luci-i18n-base-en \
+	+lighttpd-ws-mod-rewrite +lighttpd-ws-mod-cgi
 endef
 
 define Package/$(PKG_NAME)/description
