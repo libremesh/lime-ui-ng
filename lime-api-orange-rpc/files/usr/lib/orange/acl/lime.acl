@@ -1,0 +1,2 @@
+uci libremap * rw
+ubus /lime/api * x
