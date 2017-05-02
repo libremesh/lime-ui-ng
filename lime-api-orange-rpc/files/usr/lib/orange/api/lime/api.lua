@@ -199,13 +199,17 @@ end
 local function get_gateway()
     local result = {}
     local default_dev = orange.shell("ip r | grep 'default dev' | cut -d' ' -f3")
-    local shell_output = orange.shell("bmx6 -c show tunnels | grep "..default_dev.."| grep inet4 ")
-    local res = {}
-    for w in shell_output:gmatch("%S+") do table.insert(res, w) end
-    local gw = res[10]
-    result.gateway = gw
-    result.status = "ok"
-    return result
+    if default_dev ~= "" then
+        local shell_output = orange.shell("bmx6 -c show tunnels | grep "..default_dev.."| grep inet4 ")
+        local res = {}
+        for w in shell_output:gmatch("%S+") do table.insert(res, w) end
+        local gw = res[10]
+        result.status = "ok"
+        result.gateway = gw
+        return result
+    else
+        return {status="error", error={msg="Not found. No gateway available.", code="1"}}
+    end
 end
 
 local function get_metrics(params)
@@ -248,7 +252,7 @@ local function get_internet_path_metrics()
     local path = get_path({target=gw}).path
     -- if we cannot establish the current path, we read the last known good one
     if #path==0 then
-        path = list_from_file("/tmp/last_internet_path")
+        path = list_from_file("/etc/last_internet_path")
     end
     if #path>0 then
         local result = {}
@@ -260,9 +264,24 @@ local function get_internet_path_metrics()
         result.status = "ok"
         return result
     else
-        return {status="error", error="no known internet path"}
+        return {status="error", error={msg="Not found. No known Internet path.", code="1"}}
     end
 end
+
+local function get_last_internet_path()
+    local path = list_from_file("/etc/last_internet_path")
+    if #path>0 then
+        local result = {}
+        result.path = {}
+        for i, node in ipairs(path) do
+            table.insert(result.path, node)
+        end
+        result.status = "ok"
+        return result
+    else
+        return {status="error", error={msg="Not found. No known Internet path.", code="1"}}
+    end
+end    
 
 local function write_text_file(file,text)
   if not file_exists(file) then return 0 end
@@ -300,6 +319,7 @@ return {
     get_metrics=get_metrics,
     get_path=get_path,
     get_internet_path_metrics=get_internet_path_metrics,
+    get_last_internet_path=get_last_internet_path,
     get_notes=get_notes,
     set_notes=set_notes
 }

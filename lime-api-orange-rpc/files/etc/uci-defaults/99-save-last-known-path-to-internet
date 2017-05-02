@@ -1,4 +1,5 @@
 #!/bin/sh
-echo "saving last known path to the Internet"
-echo "*/6 * * * * /usr/sbin/internet_path > /tmp/last_internet_path" >> /etc/crontabs/root
+echo "adding cron to save last known path to the Internet"
+sed "\| \* \* \* .*last_internet_path.*|d" -i /etc/crontabs/root
+echo "*/6 * * * * /usr/sbin/internet_path > /tmp/internet_path_output; if [ -s /tmp/internet_path_output ]; then cp /tmp/internet_path_output /etc/last_internet_path; fi" >> /etc/crontabs/root
 
