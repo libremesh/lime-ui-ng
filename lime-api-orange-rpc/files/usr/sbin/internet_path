@@ -1,0 +1,13 @@
+#!/bin/sh
+
+default_dev=`ip r | grep "default dev" | cut -d' ' -f3`;
+gw=`bmx6 -c show tunnels | grep $default_dev | grep inet4 | awk '{ print $10 }'`;
+
+# if 8.8.8.8 is accessible, save internet path to file
+if ping -q -c5 -w10 8.8.8.8 &>/dev/null
+    then path=`mtr -6 -r -c 1 $gw.mesh  | grep "\.|" |  awk '{ print $2}' | cut -d'.' -f1`
+    printf "$path"
+else echo "Internet unreachable."
+fi
+
+

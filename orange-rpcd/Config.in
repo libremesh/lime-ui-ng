@@ -5,7 +5,7 @@ config ORANGE_PARALLEL
 	select KERNEL_LXC_MISC
 	select KERNEL_POSIX_MQUEUE
 
-config ORANGE_RPC_OPTION_SHA1
+config ORANGE_RPC_OPTIONS
 	bool "Enable SHA1 password encryption"
 	default y
 	select BUSYBOX_DEFAULT_SHA1SUM

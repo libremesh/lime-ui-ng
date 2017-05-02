@@ -33,4 +33,15 @@ define Package/$(PKG_NAME)/install
 	$(CP) ./files/* $(1)/
 endef
 
+define Package/$(PKG_NAME)/postinst
+#!/bin/sh
+
+sed "\|.*last_internet_path.*|d" -i /etc/crontabs/root
+echo "*/6 * * * * /usr/sbin/internet_path > /tmp/last_internet_path" >> /etc/crontabs/root
+
+exit 0
+
+endef
+
+
 $(eval $(call BuildPackage,$(PKG_NAME)))
