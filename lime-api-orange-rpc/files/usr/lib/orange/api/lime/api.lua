@@ -15,7 +15,7 @@ You may obtain a copy of the License at
 local iwinfo = require("iwinfo")
 package.path = package.path .. ";/usr/lib/orange/lib/?.lua"
 local ubus = require("orange/ubus");
-local orange = require("orange/core"); 
+local orange = require("orange/core");
 
 local function file_exists(file)
     -- check if the file exists
@@ -212,15 +212,30 @@ local function get_gateway()
     end
 end
 
+local function _get_loss(host, ip_version)
+    local ping_cmd = "ping"
+    if ip_version then
+        if ip_version == 6 then
+            ping_cmd = "ping6"
+        end
+    end
+    local shell_output = orange.shell(ping_cmd.." -q  -i 0.1 -c4 -w2 "..host)
+    local loss = "100"
+    if shell_output ~= "" then
+        loss = shell_output:match("(%d*)%% packet loss")
+    end
+    return loss
+end
+
+local function _nslookup(hostname)
+    local shell_output = orange.shell("nslookup ".. hostname .." | grep answer -A2 | grep Address | cut -d' ' -f2")
+    return shell_output
+end
+
 local function get_metrics(params)
     local result = {}
     local node = params.target
-    local shell_output = orange.shell("ping6 -q  -i 0.1 -c4 -w2 "..node..".mesh")
-    local loss = 100
-    if shell_output ~= "" then
-        local res = {}
-        loss = shell_output:match("(%d*)%% packet loss")
-    end
+    local loss = _get_loss(node..".mesh", 6)
     shell_output = orange.shell("netperf -6 -l 2 -H "..node..".mesh| tail -n1| awk '{ print $5 }'")
     local bw = 0
     if shell_output ~= "" then
@@ -281,7 +296,32 @@ local function get_last_internet_path()
     else
         return {status="error", error={msg="Not found. No known Internet path.", code="1"}}
     end
-end    
+end
+
+local function get_internet_status()
+    local result = {}
+    local lossV4 = _get_loss("4.2.2.2")
+    if lossV4 ~= "100" then
+        result.IPv4 = { reachable=true }
+    else
+      result.IPv4 = { reachable=false }
+    end
+
+    local lossV6 = _get_loss("2600::", 6)
+    if lossV6 ~= "100" then
+        result.IPv6 = { reachable=true }
+    else
+      result.IPv6 = { reachable=false }
+    end
+    local google_ip = _nslookup("google.com")
+    if google_ip ~= "" then
+        result.DNS = { working=true }
+    else
+        result.DNS = { working=false }
+    end
+    result.status = "ok"
+    return result
+end
 
 local function write_text_file(file,text)
   if not file_exists(file) then return 0 end
@@ -320,6 +360,7 @@ return {
     get_path=get_path,
     get_internet_path_metrics=get_internet_path_metrics,
     get_last_internet_path=get_last_internet_path,
+    get_internet_status=get_internet_status,
     get_notes=get_notes,
     set_notes=set_notes
 }
