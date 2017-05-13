@@ -245,8 +245,8 @@ local function _get_loss(host, ip_version)
     return loss
 end
 
-local function _nslookup(hostname)
-    local shell_output = orange.shell("nslookup ".. hostname .." | grep answer -A2 | grep Address | cut -d' ' -f2")
+local function _nslookup_working()
+    local shell_output = orange.shell("nslookup google.com | grep Name -A2 | grep Address")
     return shell_output
 end
 
@@ -320,19 +320,19 @@ local function get_internet_status()
     local result = {}
     local lossV4 = _get_loss("4.2.2.2")
     if lossV4 ~= "100" then
-        result.IPv4 = { reachable=true }
+        result.IPv4 = { working=true }
     else
-      result.IPv4 = { reachable=false }
+      result.IPv4 = { working=false }
     end
 
     local lossV6 = _get_loss("2600::", 6)
     if lossV6 ~= "100" then
-        result.IPv6 = { reachable=true }
+        result.IPv6 = { working=true }
     else
-      result.IPv6 = { reachable=false }
+      result.IPv6 = { working=false }
     end
-    local google_ip = _nslookup("google.com")
-    if google_ip ~= "" then
+    local lookup_output = _nslookup_working()
+    if lookup_output ~= "" then
         result.DNS = { working=true }
     else
         result.DNS = { working=false }
@@ -361,7 +361,14 @@ local function get_node_status()
     local most_active_rx = 0
     local most_active = nil
     for _, station in ipairs(stations) do
-        if station.rx_packets > most_active_rx then
+        local traffic = orange.shell("iw "..station.iface.." station get "..station.mac.." | grep bytes | awk '{ print $3}'")
+        words = {}
+        for w in traffic:gmatch("[^\n]+") do table.insert(words, w) end
+        rx = words[1]
+        tx = words[2]
+        station.rx_bytes = tonumber(rx, 10)
+        station.tx_bytes = tonumber(tx, 10)
+        if station.rx_bytes > most_active_rx then
             most_active_rx = station.rx_packets
             most_active = station
         end
