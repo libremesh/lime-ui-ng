@@ -8,7 +8,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 ]]--
 
@@ -74,9 +74,9 @@ local function get_cloud_nodes()
     local nodes = orange.shell("bmx6 -cd8 | grep ".. local_net .." | awk '{ print $10 }'")
     local result = {}
     result.nodes = {}
-    for l in nodes:gmatch("[^\n]*") do
-        if l ~= "" then
-            table.insert(result.nodes, l)
+    for line in nodes:gmatch("[^\n]*") do
+        if line ~= "" then
+            table.insert(result.nodes, line)
         end
     end
     result.status = "ok"
@@ -85,7 +85,7 @@ end
 
 local function get_location()
     local result = {}
-	local conf = ubus.call("uci", "get", { config = "libremap"})
+    local conf = ubus.call("uci", "get", { config = "libremap"})
     local lat = conf.values.location.latitude
     local lon = conf.values.location.longitude
     if (type(tonumber(lat)) == "number" and type(tonumber(lon)) == "number") then
@@ -104,7 +104,7 @@ end
 local function set_location(params)
     lat = tostring(params.lat)
     lon = tostring(params.lon)
-	ubus.call("uci", "set", { config = "libremap", section="location", option="latitude",
+    ubus.call("uci", "set", { config = "libremap", section="location", option="latitude",
                               values={latitude=lat, longitude=lon}})
     local result = ubus.call("uci", "changes", { config = "libremap" })
     ubus.call("uci", "commit", { config = "libremap" })
@@ -159,6 +159,22 @@ local function get_station_signal(params)
     return result
 end
 
+local function get_station_traffic(params)
+    local iface = params.iface
+    local mac = params.station_mac
+    local result = {}
+    local traffic = orange.shell("iw "..iface.." station get "..mac.." | grep bytes | awk '{ print $3}'")
+    words = {}
+    for w in traffic:gmatch("[^\n]+") do table.insert(words, w) end
+    rx = words[1]
+    tx = words[2]
+    result.station = mac
+    result.rx_bytes = tonumber(rx, 10)
+    result.tx_bytes = tonumber(tx, 10)
+    result.status = "ok"
+    return result
+end
+
 local function get_iface_stations(params)
     local iface = params.iface
     local result = {}
@@ -171,7 +187,9 @@ local function get_iface_stations(params)
             hostname = hostname,
             mac = mac,
             signal = tostring(link_data.signal),
-            iface = iface
+            iface = iface,
+            rx_packets = link_data.rx_packets,
+            tx_packets = link_data.tx_packets,
         }
         table.insert(stations, station_data)
     end
@@ -180,7 +198,7 @@ local function get_iface_stations(params)
     return result
 end
 
-local function get_stations(params)
+local function get_stations()
     local ifaces = get_interfaces().interfaces
     local result = {}
     result.stations = {}
@@ -323,6 +341,39 @@ local function get_internet_status()
     return result
 end
 
+local function get_node_status()
+    local result = {}
+    result.hostname = get_hostname().hostname
+    result.ips = {}
+    local ips = orange.shell("ip a s br-lan | grep inet | awk '{ print $1, $2 }'")
+    for line in ips:gmatch("[^\n]+") do
+        local words = {}
+        for w in line:gmatch("%S+") do if w ~= "" then table.insert(words, w) end end
+        local version = words[1]
+        local address = words[2]
+        if version == "inet6" then
+            table.insert(result.ips, { version="6", address=address })
+        else
+            table.insert(result.ips, { version="4", address=address })
+        end
+    end
+    local stations = get_stations().stations
+    local most_active_rx = 0
+    local most_active = nil
+    for _, station in ipairs(stations) do
+        if station.rx_packets > most_active_rx then
+            most_active_rx = station.rx_packets
+            most_active = station
+        end
+    end
+    local station_traffic = get_station_traffic({ iface=most_active.iface, station_mac=most_active.mac })
+    most_active.rx_bytes = station_traffic.rx_bytes
+    most_active.tx_bytes = station_traffic.tx_bytes
+    result.most_active = most_active
+    result.status = "ok"
+    return result
+end
+
 local function write_text_file(file,text)
   if not file_exists(file) then return 0 end
   local text_file = io.open(file,'w')
@@ -355,12 +406,14 @@ return {
     get_iface_stations=get_iface_stations,
     get_stations=get_stations,
     get_station_signal=get_station_signal,
+    get_station_traffic=get_station_traffic,
     get_gateway=get_gateway,
     get_metrics=get_metrics,
     get_path=get_path,
     get_internet_path_metrics=get_internet_path_metrics,
     get_last_internet_path=get_last_internet_path,
     get_internet_status=get_internet_status,
+    get_node_status=get_node_status,
     get_notes=get_notes,
     set_notes=set_notes
 }
