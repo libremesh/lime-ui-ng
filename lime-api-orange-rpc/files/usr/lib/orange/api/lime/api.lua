@@ -254,7 +254,7 @@ local function get_metrics(params)
     local result = {}
     local node = params.target
     local loss = _get_loss(node..".mesh", 6)
-    shell_output = orange.shell("netperf -6 -l 2 -H "..node..".mesh| tail -n1| awk '{ print $5 }'")
+    shell_output = orange.shell("netperf -6 -l 10 -H "..node..".mesh| tail -n1| awk '{ print $5 }'")
     local bw = 0
     if shell_output ~= "" then
         bw = shell_output:match("[%d.]+")
@@ -269,7 +269,7 @@ local function get_path(params)
     local node = params.target
     local result = {}
     local path = {}
-    local path_str = orange.shell("mtr -6 -r -c 1 " ..node..".mesh  | grep '\.|' |  awk '{ print $2}' | cut -d'.' -f1")
+    local path_str = orange.shell("traceroute6 -q 1 torreunc.mesh | grep ms | awk '{ print $2 }' | cut -d'.' -f1")
     for l in path_str:gmatch("[^\n]*") do
         if l ~= "" then
             table.insert(path, l)
