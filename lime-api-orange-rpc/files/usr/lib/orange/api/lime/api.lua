@@ -377,6 +377,10 @@ local function get_node_status()
     most_active.rx_bytes = station_traffic.rx_bytes
     most_active.tx_bytes = station_traffic.tx_bytes
     result.most_active = most_active
+
+    local uptime = orange.shell("awk '{print $1}' /proc/uptime")
+    result.uptime = uptime
+
     result.status = "ok"
     return result
 end
