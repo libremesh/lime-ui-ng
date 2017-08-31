@@ -386,7 +386,6 @@ local function get_node_status()
 end
 
 local function write_text_file(file,text)
-  if not file_exists(file) then return 0 end
   local text_file = io.open(file,'w')
   text_file:write(text)
   text_file:close()
