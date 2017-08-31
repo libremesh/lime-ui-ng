@@ -269,7 +269,7 @@ local function get_path(params)
     local node = params.target
     local result = {}
     local path = {}
-    local path_str = orange.shell("traceroute6 -q 1 torreunc.mesh | grep ms | awk '{ print $2 }' | cut -d'.' -f1")
+    local path_str = orange.shell("traceroute6 -q 1 "..node..".mesh | grep ms | awk '{ print $2 }' | cut -d'.' -f1")
     for l in path_str:gmatch("[^\n]*") do
         if l ~= "" then
             table.insert(path, l)
