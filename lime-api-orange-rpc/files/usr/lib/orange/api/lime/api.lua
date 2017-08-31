@@ -369,7 +369,7 @@ local function get_node_status()
         station.rx_bytes = tonumber(rx, 10)
         station.tx_bytes = tonumber(tx, 10)
         if station.rx_bytes > most_active_rx then
-            most_active_rx = station.rx_packets
+            most_active_rx = station.rx_bytes
             most_active = station
         end
     end
